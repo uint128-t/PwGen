@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Generator</title>
+</head>
+<body>
+    <h1>Password Generator</h1>
+    Password: <input type="password" id="password"><button onclick="store()">Store</button>
+    <br>
+    Name: <input type="text" id="name">
+    <br>
+    Options: 
+    <input type="checkbox" id="capital" checked><label for="capital">Capital</label>
+    <input type="checkbox" id="numbers" checked><label for="numbers">Numbers</label>
+    <input type="checkbox" id="special" checked><label for="special">Special</label>
+    <input type="checkbox" id="morespecial" checked><label for="morespecial">More Special</label>
+    <input type="checkbox" id="space" checked><label for="space">Whitespace</label>
+    <br>
+    Length: <input type="number" id="length" value="32" max="78" style="width:30px;">
+    <br>
+    <button onclick="generate()">Generate</button>
+    <br>
+    Output: <input type="text" id="output" style="width:400px;" readonly><button onclick="copy()">Copy</button>
+    <script>
+        const te = new TextEncoder();
+        const charset_capital = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const charset_numbers = '0123456789';
+        const charset_special = '!@#$%^&*()_+-=';
+        const charset_morespecial = `\`~-=[]\;',./_+{}|:"<>? `;
+        const charset_space = " ";
+
+        function getcharset(){
+            let charset = 'abcdefghijklmnopqrstuvwxyz';
+            if(document.getElementById("capital").checked){
+                charset += charset_capital;
+            }
+            if(document.getElementById("numbers").checked){
+                charset += charset_numbers;
+            }
+            if(document.getElementById("special").checked){
+                charset += charset_special;
+            }
+            if(document.getElementById("morespecial").checked){
+                charset += charset_morespecial;
+            }
+            if(document.getElementById("space").checked){
+            charset += charset_space;
+            }
+            return charset;
+        }
+
+        async function generate() {
+            let password = document.getElementById("password").value;
+            let name = document.getElementById("name").value;
+            let bytes = te.encode(password+name);
+            let hashbuf = new Uint8Array(await crypto.subtle.digest("sha-512",bytes));
+            // dump to bigint
+            let hash = 0n;
+            for (let i=0;i<64;i++){
+                hash = hash*256n+BigInt(hashbuf[i]);
+            }
+            console.log(hashbuf,hash)
+            let charset = getcharset();
+            let charsetl = BigInt(charset.length)
+            let output = '';
+            for (let i=0;i<document.getElementById("length").value;i++){
+                output += charset[hash%charsetl];
+                hash = hash/charsetl;
+            }
+            
+            document.getElementById("output").value = output;
+        }
+        function store(){
+            let credential = new PasswordCredential({
+                id: "PwGen",
+                password: document.getElementById("password").value,
+            });
+            navigator.credentials.store(credential).then(() => {},
+                (err) => {
+                    alert("Could not store credential: " + err);
+                },
+            );
+        }
+        function copy(){
+            document.getElementById("output").select();
+            document.getElementById("output").setSelectionRange(0,999999);
+            navigator.clipboard.writeText(document.getElementById("output").value)
+        }
+    </script>
+    <br>
+    <h2>How to use</h2>
+    <p>
+        This special password generator allows you to only remember one password.
+        <br>
+        Choose a strong password and use that for everything. Then enter the site name and use the generated password for the site.
+        <br>
+        <b>NOTE: You must use the same settings for each site!</b>
+        <br>
+        <b>NOTE: This password is not random (intended behavior)! It is intended to be the same for each input.</b>
+        <br>
+        The generated password cannot be reversed into the original!
+        <br>
+        If you store the original password in your browser, as long as no one has physical access you will be fine.
+        <br>
+        if passwords are synced the account needs to be secure as well, you should still memorize it.
+        <br>
+        The name can follow any convention (recommended to be site name in lowercase) as long as it stays the same.
+    </p>
+    <style>
+        *{
+            font-family:Arial, Helvetica, sans-serif;
+            padding:5px;
+            line-height:1.5;
+        }
+        input{
+            margin:2px;
+        }
+    </style>
+</body>
+</html>
