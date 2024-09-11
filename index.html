@@ -7,11 +7,11 @@
 </head>
 <body>
     <h1>Password Generator</h1>
-    Password: <input type="password" id="password"><button onclick="store()">Store</button>
+    Password: <input type="password" id="password"><button onclick="store()">Store using browser</button><button onclick="storels()">Store in localStorage</button>
     <br>
     Name: <input type="text" id="name">
     <br>
-    Options: 
+    Options:
     <input type="checkbox" id="capital" checked><label for="capital">Capital</label>
     <input type="checkbox" id="numbers" checked><label for="numbers">Numbers</label>
     <input type="checkbox" id="special" checked><label for="special">Special</label>
@@ -69,7 +69,7 @@
                 output += charset[hash%charsetl];
                 hash = hash/charsetl;
             }
-            
+
             document.getElementById("output").value = output;
         }
         function store(){
@@ -83,18 +83,27 @@
                 },
             );
         }
+        function storels(){
+            localStorage["pw"] = document.getElementById("password").value
+            // Yes, it's in plaintext but what am I supposed to do, store it in base64? That's not encryption either.
+        }
         function copy(){
             document.getElementById("output").select();
             document.getElementById("output").setSelectionRange(0,999999);
             navigator.clipboard.writeText(document.getElementById("output").value)
         }
+        document.addEventListener("DOMContentLoaded",()=>{
+            if (localStorage["pw"]){
+                document.getElementById("password").value = localStorage["pw"]
+            }
+        })
     </script>
     <br>
     <h2>How to use</h2>
     <p>
         This special password generator allows you to only remember one password.
         <br>
-        Choose a strong password and use that for everything. Then enter the site name and use the generated password for the site.
+        Choose a strong master password and use that for everything. Then enter the site name and use the generated password for the site.
         <br>
         <b>NOTE: You must use the same settings for each site!</b>
         <br>
@@ -102,7 +111,7 @@
         <br>
         The generated password cannot be reversed into the original!
         <br>
-        If you store the original password in your browser, as long as no one has physical access you will be fine.
+        If you store the master password, you will have to keep your physical device safe.
         <br>
         if passwords are synced the account needs to be secure as well, you should still memorize it.
         <br>
