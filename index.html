@@ -10,6 +10,8 @@
     Password: <input type="password" id="password"><button onclick="store()">Store using browser</button><button onclick="storels()">Store in localStorage</button>
     <br>
     Name: <input type="text" id="name">
+    <button onclick="storesettings()">Save</button>
+    <button onclick="removesettings()">Remove</button>
     <br>
     Options:
     <input type="checkbox" id="capital" checked><label for="capital">Capital</label>
@@ -18,7 +20,7 @@
     <input type="checkbox" id="morespecial" checked><label for="morespecial">More Special</label>
     <input type="checkbox" id="space" checked><label for="space">Whitespace</label>
     <br>
-    Length: <input type="number" id="length" value="32" max="78" style="width:30px;">
+    Length: <input type="number" id="length" value="32" max="78" style="width:50px;">
     <br>
     <button onclick="generate()">Generate</button>
     <br>
@@ -30,6 +32,8 @@
         const charset_special = '!@#$%^&*()_+-=';
         const charset_morespecial = `\`~-=[]\;',./_+{}|:"<>? `;
         const charset_space = " ";
+
+        document.getElementById("name").oninput=loadsettings
 
         function getcharset(){
             let charset = 'abcdefghijklmnopqrstuvwxyz';
@@ -83,6 +87,39 @@
                 },
             );
         }
+        function storesettings(){
+            localStorage[`$${document.getElementById("name").value}`]=JSON.stringify([
+                document.getElementById("length").value,
+                document.getElementById("capital").checked,
+                document.getElementById("numbers").checked,
+                document.getElementById("special").checked,
+                document.getElementById("morespecial").checked,
+                document.getElementById("space").checked
+            ])
+        }
+        function removesettings(){
+            localStorage.removeItem(`$${document.getElementById("name").value}`);
+            loadsettings(); // clear
+        }
+        function loadsettings(){
+            let st = localStorage[`$${document.getElementById("name").value}`];
+            if (st){
+                let v = JSON.parse(st);
+                document.getElementById("length").value=v[0]
+                document.getElementById("capital").checked=v[1];
+                document.getElementById("numbers").checked=v[2];
+                document.getElementById("special").checked=v[3];
+                document.getElementById("morespecial").checked=v[4];
+                document.getElementById("space").checked=v[5];
+            } else{
+                document.getElementById("length").value=32
+                document.getElementById("capital").checked=true;
+                document.getElementById("numbers").checked=true;
+                document.getElementById("special").checked=true;
+                document.getElementById("morespecial").checked=true;
+                document.getElementById("space").checked=true;
+            }
+        }
         function storels(){
             localStorage["pw"] = document.getElementById("password").value
             // Yes, it's in plaintext but what am I supposed to do, store it in base64? That's not encryption either.
@@ -116,6 +153,8 @@
         if passwords are synced the account needs to be secure as well, you should still memorize it.
         <br>
         The name can follow any convention (recommended to be site name in lowercase) as long as it stays the same.
+        <br>
+        You can save different settings for each site (so if you used different settings for a site you can remember that)
     </p>
     <style>
         *{
